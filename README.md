@@ -6,7 +6,8 @@ Makes `completion-at-point` display possible completions via `ido–completing-r
 
 ### Installation
 
-    (require 'ido-at-point)
+    (autoload 'ido-at-point-setup "ido-at-point")
+    (ido-at-point-setup)
 
 ### Usage
 
