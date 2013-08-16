@@ -37,7 +37,6 @@
 (require 'cl-lib)
 (require 'ido)
 
-
 (defun ido-at-point-insert (start end completion)
   "Replaces text in buffer from START to END with COMPLETION."
   (goto-char start)
@@ -48,15 +47,18 @@
   "Completion for symbol at point using `ido-completing-read'."
   (let* ((input (buffer-substring start end))
          (choices (all-completions input collection predicate)))
-    (if (eq 1 (length choices))
-        (ido-at-point-insert start end (car choices))
-      ;; timer to prevent "error in process filter" with async completions
-      (run-with-idle-timer
-       0 nil (lambda ()
-               (let* ((sorted (cl-sort choices 'string-lessp :key 'downcase))
-                      (comp (ido-completing-read "" sorted nil nil input)))
-                 (when comp
-                   (ido-at-point-insert start end comp))))))))
+    (cond ((null choices)
+           (message "No match"))
+          ((null (cdr choices))
+           (ido-at-point-insert start end (car choices)))
+          (t
+           ;; timer to prevent "error in process filter" with async completions
+           (run-with-idle-timer
+            0 nil (lambda ()
+                    (let* ((sorted (cl-sort choices 'string-lessp :key 'downcase))
+                           (comp (ido-completing-read "" sorted nil nil input)))
+                      (when comp
+                        (ido-at-point-insert start end comp)))))))))
 
 (defun ido-at-point-completion-in-region (next-fun &rest args)
   "See `ido-at-point-complete'."
