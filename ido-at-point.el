@@ -1,4 +1,4 @@
-;;; ido-at-point --- ido-style completion-at-point -*- lexical-binding: t; -*-
+;;; ido-at-point.el --- ido-style completion-at-point -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2013 katspaugh
 
@@ -29,7 +29,7 @@
 
 ;;; Installation:
 
-;; (autoload 'ido-at-point-setup "ido-at-point")
+;; (require 'ido-at-point) ; unless installed from a package
 ;; (ido-at-point-setup)
 
 ;;; Code:
@@ -64,7 +64,7 @@
 
 ;;;###autoload
 (defun ido-at-point-setup ()
-  "Setups an alternative frontend for `completion-at-point'.
+  "Sets up an alternative frontend for `completion-at-point'.
 Replaces the standard completions buffer with ido prompt by modifying
 `completion-in-region-functions'."
   (add-to-list 'completion-in-region-functions
