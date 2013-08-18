@@ -30,7 +30,7 @@
 ;;; Installation:
 
 ;; (require 'ido-at-point) ; unless installed from a package
-;; (ido-at-point-setup)
+;; (ido-at-point-mode)
 
 ;;; Code:
 
@@ -64,13 +64,35 @@
   "See `ido-at-point-complete'."
   (apply 'ido-at-point-complete args))
 
+(defun ido-at-point-mode-set (enable)
+  (if enable
+      (add-to-list 'completion-in-region-functions
+                   'ido-at-point-completion-in-region)
+    (setq completion-in-region-functions
+          (delq 'ido-at-point-completion-in-region
+                completion-in-region-functions))))
+
 ;;;###autoload
-(defun ido-at-point-setup ()
-  "Sets up an alternative frontend for `completion-at-point'.
-Replaces the standard completions buffer with ido prompt by modifying
-`completion-in-region-functions'."
-  (add-to-list 'completion-in-region-functions
-               'ido-at-point-completion-in-region))
+(define-minor-mode ido-at-point-mode
+  "Global minor mode to use IDO for `completion-at-point'.
+
+When called interactively, toggle `ido-at-point-mode'.  With
+prefix ARG, enable `ido-at-point-mode' if ARG is positive,
+otherwise disable it.
+
+When called from Lisp, enable `ido-at-point-mode' if ARG is
+omitted, nil or positive.  If ARG is `toggle', toggle
+`ido-at-point-mode'.  Otherwise behave as if called
+interactively.
+
+With `ido-at-point-mode' use IDO for `completion-at-point'."
+  :variable ((memq 'ido-at-point-completion-in-region
+                   completion-in-region-functions)
+             .
+             ido-at-point-mode-set))
+
+(define-obsolete-function-alias 'ido-at-point-setup 'ido-at-point-mode
+  "0.0.2")
 
 (provide 'ido-at-point)
 

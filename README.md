@@ -6,8 +6,8 @@ Makes `completion-at-point` display possible completions via `ido–completing-r
 
 ### Installation
 
-    (autoload 'ido-at-point-setup "ido-at-point")
-    (ido-at-point-setup)
+    (autoload 'ido-at-point-mode "ido-at-point")
+    (ido-at-point-mode)
 
 ### Usage
 
@@ -16,4 +16,3 @@ Press `M-tab` or `C-M-i` to start completing.
 ### Compatibility
 
 Works only in Emacs 24 and higher. Compatible with asynchronous completion requests (including Tern's completion for JavaScript).
-
