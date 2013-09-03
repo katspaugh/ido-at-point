@@ -6,7 +6,16 @@ Makes `completion-at-point` display possible completions via `ido–completing-r
 
 ### Installation
 
+You can install the package from [MELPA](http://melpa.milkbox.net/) and autoload it:
+
     (autoload 'ido-at-point-mode "ido-at-point")
+    
+Otherwise, if installed manually:
+
+    (require 'ido-at-point)
+    
+Then activate the mode:
+    
     (ido-at-point-mode)
 
 ### Usage
