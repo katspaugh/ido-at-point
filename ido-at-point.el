@@ -52,21 +52,18 @@
           ((null (cdr choices))
            (ido-at-point-insert start end (car choices)))
           (t
-           (let ((common-match (try-completion input choices)))
-             (ido-at-point-insert start end common-match)
-             (let ((end (+ start (length common-match)))
-                   (sorted (cl-sort choices 'string-lessp :key 'downcase)))
-               ;; timer to prevent "error in process filter"
-               (run-with-idle-timer
-                0 nil
-                (lambda ()
-                  (ido-at-point-insert
-                   start end
-                   (ido-completing-read "" sorted nil nil common-match))))))))))
+           (let ((sorted (cl-sort choices 'string-lessp :key 'downcase)))
+             ;; timer to prevent "error in process filter"
+             (run-with-idle-timer
+              0 nil
+              (lambda ()
+                (ido-at-point-insert
+                 start end
+                 (ido-completing-read "" sorted nil nil input)))))))))
 
-(defun ido-at-point-completion-in-region (next-fun &rest args)
+(defun ido-at-point-completion-in-region (&rest args)
   "See `ido-at-point-complete'."
-  (apply 'ido-at-point-complete args))
+  (apply 'ido-at-point-complete (cdr args)))
 
 (defun ido-at-point-mode-set (enable)
   (if enable
