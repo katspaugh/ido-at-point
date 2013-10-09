@@ -5,7 +5,7 @@
 ;; Author: katspaugh
 ;; Keywords: convenience, abbrev
 ;; URL: https://github.com/katspaugh/ido-at-point
-;; Version: 0.0.1
+;; Version: 0.0.2
 ;; Package-Requires: ((emacs "24") (cl-lib "0.3"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -34,8 +34,10 @@
 
 ;;; Code:
 
-(require 'cl-lib)
 (require 'ido)
+
+(defvar ido-at-point-partial t
+  "If nil, don't complete partial match on the first completion attempt.")
 
 (defun ido-at-point-insert (start end completion)
   "Replaces text in buffer from START to END with COMPLETION."
@@ -45,21 +47,24 @@
 
 (defun ido-at-point-complete (start end collection &optional predicate)
   "Completion for symbol at point using `ido-completing-read'."
-  (let* ((input (buffer-substring start end))
+  (let* ((input (buffer-substring-no-properties start end))
          (choices (all-completions input collection predicate)))
     (cond ((null choices)
            (message "No match"))
           ((null (cdr choices))
            (ido-at-point-insert start end (car choices)))
           (t
-           (let ((sorted (cl-sort choices 'string-lessp :key 'downcase)))
-             ;; timer to prevent "error in process filter"
-             (run-with-idle-timer
-              0 nil
-              (lambda ()
-                (ido-at-point-insert
-                 start end
-                 (ido-completing-read "" sorted nil nil input)))))))))
+           (let ((common (try-completion input choices)))
+             (if (and ido-at-point-partial
+                      (stringp common) (not (string= common input)))
+                 (ido-at-point-insert start end common)
+               ;; timer to prevent "error in process filter"
+               (run-with-idle-timer
+                0 nil
+                (lambda ()
+                  (ido-at-point-insert
+                   start end
+                   (ido-completing-read "" choices nil nil input))))))))))
 
 (defun ido-at-point-completion-in-region (&rest args)
   "See `ido-at-point-complete'."
@@ -91,9 +96,6 @@ With `ido-at-point-mode' use IDO for `completion-at-point'."
                    completion-in-region-functions)
              .
              ido-at-point-mode-set))
-
-(define-obsolete-function-alias 'ido-at-point-setup 'ido-at-point-mode
-  "0.0.2")
 
 (provide 'ido-at-point)
 
