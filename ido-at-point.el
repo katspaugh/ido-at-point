@@ -6,7 +6,7 @@
 ;; Keywords: convenience, abbrev
 ;; URL: https://github.com/katspaugh/ido-at-point
 ;; Version: 0.0.2
-;; Package-Requires: ((emacs "24") (cl-lib "0.3"))
+;; Package-Requires: ((emacs "24"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
