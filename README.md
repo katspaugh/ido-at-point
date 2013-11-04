@@ -28,6 +28,10 @@ Partial completion is *on* by default. If you don't want to get partial completi
 
     (setq ido-at-point-partial nil)
 
+Fuzzy matching is *off* by default. If you want fuzzy matching, set `ido-at-point-fuzzy` to `t`:
+
+    (setq ido-at-point-fuzzy t)
+
 ### Compatibility
 
 Works only in Emacs 24 and higher. Compatible with asynchronous completion requests (including Tern's completion for JavaScript).

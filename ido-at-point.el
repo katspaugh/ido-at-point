@@ -39,6 +39,29 @@
 (defvar ido-at-point-partial t
   "If nil, don't complete partial match on the first completion attempt.")
 
+(defvar ido-at-point-fuzzy nil
+  "If t, use fuzzy completion for abbreviations.
+
+For example, this would suggest \"ido-at-point-complete\" for the
+query \"iapc\".")
+
+(defun ido-at-point-fuzzy-match (string &rest args)
+  (let ((matched-symbols (list))
+        (fuzzy-target (substring
+                       (mapconcat
+                        'identity
+                        (split-string string "") ".*?")
+                       ;; splitting by "" gives additional empty strings at
+                       ;; the beginning and the end; substring 'em out
+                       3 -3)))
+    (mapatoms
+     (lambda (ob)
+       (if (string-match-p fuzzy-target (symbol-name ob))
+           (push ob matched-symbols))))
+    ;; the obarray consists of symbols, and since it's large I wanted
+    ;; to keep the mapatoms as simple as possible.
+    (mapcar 'symbol-name matched-symbols)))
+
 (defun ido-at-point-insert (start end completion)
   "Replaces text in buffer from START to END with COMPLETION."
   (goto-char start)
@@ -48,7 +71,12 @@
 (defun ido-at-point-complete (start end collection &optional predicate)
   "Completion for symbol at point using `ido-completing-read'."
   (let* ((input (buffer-substring-no-properties start end))
-         (choices (all-completions input collection predicate)))
+         (choices (all-completions
+                   input
+                   (if ido-at-point-fuzzy
+                       'ido-at-point-fuzzy-match
+                     collection)
+                   predicate)))
     (cond ((null choices)
            (message "No match"))
           ((null (cdr choices))
