@@ -39,28 +39,18 @@
 (defvar ido-at-point-partial t
   "If nil, don't complete partial match on the first completion attempt.")
 
-(defvar ido-at-point-fuzzy nil
-  "If t, use fuzzy completion for abbreviations.
-
-For example, this would suggest \"ido-at-point-complete\" for the
-query \"iapc\".")
-
-(defun ido-at-point-fuzzy-match (string &rest args)
-  (let ((matched-symbols (list))
-        (fuzzy-target (substring
-                       (mapconcat
-                        'identity
-                        (split-string string "") ".*?")
-                       ;; splitting by "" gives additional empty strings at
-                       ;; the beginning and the end; substring 'em out
-                       3 -3)))
+(defun ido-at-point-flex-completions (collection input &rest args)
+  (let ((matched (list))
+        (fuzzy-target
+         (concat "^"
+                 (mapconcat #'regexp-quote (split-string input "" t) ".*?"))))
     (mapatoms
      (lambda (ob)
-       (if (string-match-p fuzzy-target (symbol-name ob))
-           (push ob matched-symbols))))
-    ;; the obarray consists of symbols, and since it's large I wanted
-    ;; to keep the mapatoms as simple as possible.
-    (mapcar 'symbol-name matched-symbols)))
+       (let ((name (if (symbolp ob) (symbol-name ob) ob)))
+         (when (string-match-p fuzzy-target name)
+           (push name matched))))
+     collection)
+    matched))
 
 (defun ido-at-point-insert (start end completion)
   "Replaces text in buffer from START to END with COMPLETION."
@@ -68,15 +58,14 @@ query \"iapc\".")
   (delete-region start end)
   (insert completion))
 
-(defun ido-at-point-complete (start end collection &optional predicate)
+(defun ido-at-point-complete (start end collection &rest args)
   "Completion for symbol at point using `ido-completing-read'."
   (let* ((input (buffer-substring-no-properties start end))
          (choices (all-completions
                    input
-                   (if ido-at-point-fuzzy
-                       'ido-at-point-fuzzy-match
-                     collection)
-                   predicate)))
+                   (if ido-enable-flex-matching
+                     (apply-partially 'ido-at-point-flex-completions collection)
+                     collection))))
     (cond ((null choices)
            (message "No match"))
           ((null (cdr choices))
