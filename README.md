@@ -28,7 +28,9 @@ Partial completion is *on* by default. If you don't want to get partial completi
 
     (setq ido-at-point-partial nil)
 
-Fuzzy matching is available, if you enabled `ido-enable-flex-matching`.
+Fuzzy matching is *off* by default. If you want fuzzy matching, set `ido-at-point-fuzzy` to `t`:
+
+    (setq ido-at-point-fuzzy t)
 
 ### Compatibility
 
