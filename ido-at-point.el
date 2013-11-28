@@ -75,9 +75,9 @@ query \"iapc\".")
   (let ((matched (list))
         (fuzzy-target
          (mapconcat #'regexp-quote (split-string input "" t) ".*?")))
-    (mapatoms
+    (mapc
      (lambda (ob)
-       (let ((name (symbol-name ob)))
+       (let ((name (if (symbolp ob) (symbol-name ob) ob)))
          (when (string-match-p fuzzy-target name)
            (push name matched))))
      collection)
