@@ -45,36 +45,13 @@
 For example, this would suggest \"ido-at-point-complete\" for the
 query \"iapc\".")
 
-(defun ido-at-point-fuzzy-match (string &rest args)
-  (let ((matched-symbols (list))
-        (fuzzy-target (substring
-                       (mapconcat
-                        'identity
-                        (split-string string "") ".*?")
-                       ;; splitting by "" gives additional empty strings at
-                       ;; the beginning and the end; substring 'em out
-                       3 -3)))
-    (mapatoms
-     (lambda (ob)
-       (if (string-match-p fuzzy-target (symbol-name ob))
-           (push ob matched-symbols))))
-    ;; the obarray consists of symbols, and since it's large I wanted
-    ;; to keep the mapatoms as simple as possible.
-    (mapcar 'symbol-name matched-symbols)))
-
-(defun ido-at-point-insert (start end completion)
-  "Replaces text in buffer from START to END with COMPLETION."
-  (goto-char start)
-  (delete-region start end)
-  (insert completion))
-
-(defun ido-at-point-complete (start end collection &optional predicate)
+(defun ido-at-point-complete (_ start end collection &optional predicate)
   "Completion for symbol at point using `ido-completing-read'."
   (let* ((input (buffer-substring-no-properties start end))
          (choices (all-completions
                    input
                    (if ido-at-point-fuzzy
-                       'ido-at-point-fuzzy-match
+                       (apply-partially 'ido-at-point-fuzzy-match collection)
                      collection)
                    predicate)))
     (cond ((null choices)
@@ -94,16 +71,30 @@ query \"iapc\".")
                    start end
                    (ido-completing-read "" choices nil nil input))))))))))
 
-(defun ido-at-point-completion-in-region (&rest args)
-  "See `ido-at-point-complete'."
-  (apply 'ido-at-point-complete (cdr args)))
+(defun ido-at-point-fuzzy-match (collection input &rest args)
+  (let ((matched (list))
+        (fuzzy-target
+         (mapconcat #'regexp-quote (split-string input "" t) ".*?")))
+    (mapc
+     (lambda (ob)
+       (let ((name (if (symbolp ob) (symbol-name ob) ob)))
+         (when (string-match-p fuzzy-target name)
+           (push name matched))))
+     collection)
+    matched))
+
+(defun ido-at-point-insert (start end completion)
+  "Replaces text in buffer from START to END with COMPLETION."
+  (goto-char start)
+  (delete-region start end)
+  (insert completion))
 
 (defun ido-at-point-mode-set (enable)
   (if enable
       (add-to-list 'completion-in-region-functions
-                   'ido-at-point-completion-in-region)
+                   'ido-at-point-complete)
     (setq completion-in-region-functions
-          (delq 'ido-at-point-completion-in-region
+          (delq 'ido-at-point-complete
                 completion-in-region-functions))))
 
 ;;;###autoload
@@ -120,7 +111,7 @@ omitted, nil or positive.  If ARG is `toggle', toggle
 interactively.
 
 With `ido-at-point-mode' use IDO for `completion-at-point'."
-  :variable ((memq 'ido-at-point-completion-in-region
+  :variable ((memq 'ido-at-point-complete
                    completion-in-region-functions)
              .
              ido-at-point-mode-set))
