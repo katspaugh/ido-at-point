@@ -94,7 +94,7 @@ query \"iapc\".")
       (add-to-list 'completion-in-region-functions
                    'ido-at-point-complete)
     (setq completion-in-region-functions
-          (delq 'ido-at-point-completion-in-region
+          (delq 'ido-at-point-complete
                 completion-in-region-functions))))
 
 ;;;###autoload
@@ -111,7 +111,7 @@ omitted, nil or positive.  If ARG is `toggle', toggle
 interactively.
 
 With `ido-at-point-mode' use IDO for `completion-at-point'."
-  :variable ((memq 'ido-at-point-completion-in-region
+  :variable ((memq 'ido-at-point-complete
                    completion-in-region-functions)
              .
              ido-at-point-mode-set))
