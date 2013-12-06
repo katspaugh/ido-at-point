@@ -85,9 +85,14 @@ query \"iapc\".")
 
 (defun ido-at-point-insert (start end completion)
   "Replaces text in buffer from START to END with COMPLETION."
-  (goto-char start)
-  (delete-region start end)
-  (insert completion))
+  ;; Completion text can have a property of `(face completions-common-part)'
+  ;; which we'll use to determine, whether the completion contains the
+  ;; whole input from START to END or just a substring.
+  ;; Note that not all completions come with text properties.
+  (let ((len (next-property-change 0 completion)))
+    (goto-char end)
+    (delete-region (if (null len) start (- end len)) end)
+    (insert completion)))
 
 (defun ido-at-point-mode-set (enable)
   (if enable
