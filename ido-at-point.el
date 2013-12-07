@@ -53,23 +53,23 @@ query \"iapc\".")
                    (if ido-at-point-fuzzy
                        (apply-partially 'ido-at-point-fuzzy-match collection)
                      collection)
-                   predicate)))
+                   predicate))
+         (common (try-completion input choices)))
     (cond ((null choices)
            (message "No match"))
           ((null (cdr choices))
-           (ido-at-point-insert start end (car choices)))
+           (ido-at-point-insert start end input (car choices)))
           (t
-           (let ((common (try-completion input choices)))
-             (if (and ido-at-point-partial
-                      (stringp common) (not (string= common input)))
-                 (ido-at-point-insert start end common)
-               ;; timer to prevent "error in process filter"
-               (run-with-idle-timer
-                0 nil
-                (lambda ()
-                  (ido-at-point-insert
-                   start end
-                   (ido-completing-read "" choices nil nil input))))))))))
+           (if (and ido-at-point-partial
+                    (stringp common) (not (string= common input)))
+               (ido-at-point-insert start end input common)
+             ;; timer to prevent "error in process filter"
+             (run-with-idle-timer
+              0 nil
+              (lambda ()
+                (ido-at-point-insert
+                 start end common
+                 (ido-completing-read "" choices nil nil common)))))))))
 
 (defun ido-at-point-fuzzy-match (collection input &rest args)
   (let ((matched (list))
@@ -83,15 +83,15 @@ query \"iapc\".")
      collection)
     matched))
 
-(defun ido-at-point-insert (start end completion)
+(defun ido-at-point-insert (start end common completion)
   "Replaces text in buffer from START to END with COMPLETION."
   ;; Completion text can have a property of `(face completions-common-part)'
   ;; which we'll use to determine, whether the completion contains the
   ;; whole input from START to END or just a substring.
   ;; Note that not all completions come with text properties.
-  (let ((len (next-property-change 0 completion)))
+  (let ((len (or (next-property-change 0 completion) (length common) 0)))
     (goto-char end)
-    (delete-region (if (null len) start (- end len)) end)
+    (delete-region (- end len) end)
     (insert completion)))
 
 (defun ido-at-point-mode-set (enable)
