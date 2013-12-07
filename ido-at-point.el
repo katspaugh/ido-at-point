@@ -58,17 +58,17 @@ query \"iapc\".")
     (cond ((null choices)
            (message "No match"))
           ((null (cdr choices))
-           (ido-at-point-insert start end input (car choices)))
+           (ido-at-point-insert end input (car choices)))
           (t
            (if (and ido-at-point-partial
                     (stringp common) (not (string= common input)))
-               (ido-at-point-insert start end input common)
+               (ido-at-point-insert end input common)
              ;; timer to prevent "error in process filter"
              (run-with-idle-timer
               0 nil
               (lambda ()
                 (ido-at-point-insert
-                 start end common
+                 end common
                  (ido-completing-read "" choices nil nil common)))))))))
 
 (defun ido-at-point-fuzzy-match (collection input &rest args)
@@ -83,11 +83,11 @@ query \"iapc\".")
      collection)
     matched))
 
-(defun ido-at-point-insert (start end common completion)
-  "Replaces text in buffer from START to END with COMPLETION."
+(defun ido-at-point-insert (end common completion)
+  "Replaces text in buffer from END back to COMMON length with COMPLETION."
   ;; Completion text can have a property of `(face completions-common-part)'
-  ;; which we'll use to determine, whether the completion contains the
-  ;; whole input from START to END or just a substring.
+  ;; which we'll use to determine, whether the completion contains
+  ;; the common part (if any).
   ;; Note that not all completions come with text properties.
   (let ((len (or (next-property-change 0 completion) (length common) 0)))
     (goto-char end)
