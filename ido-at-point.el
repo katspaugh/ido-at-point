@@ -73,7 +73,7 @@ query \"iapc\".")
       (apply #'ido-at-point-helm-read args)
     (apply #'ido-at-point-read args)))
 
-(defun helm-at-point-read (end common choices)
+(defun ido-at-point-read (end common choices)
   (run-with-idle-timer
    0 nil
    (lambda ()
