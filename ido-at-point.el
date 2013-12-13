@@ -56,17 +56,19 @@ query \"iapc\".")
                    (if ido-at-point-fuzzy
                        (apply-partially 'ido-at-point-fuzzy-match collection)
                      collection)
-                   predicate))
-         (common (try-completion input choices)))
-    (cond ((null choices)
-           (message "No match"))
-          ((null (cdr choices))
-           (ido-at-point-insert end input (car choices)))
-          (t
-           (if (and ido-at-point-partial
-                    (stringp common) (not (string= common input)))
-               (ido-at-point-insert end input common)
-             (ido-at-point-do-read end common choices))))))
+                   predicate)))
+    ;; No candidates
+    (if (null choices)
+        (message "No match")
+      ;; A single candidates
+      (if (null (cdr choices))
+          (ido-at-point-insert end input choices (car choices))
+        ;; Many candidates
+        (let ((common (try-completion input choices)))
+          (if (and ido-at-point-partial
+                   (stringp common) (not (string= common input)))
+              (ido-at-point-insert end input choices common)
+            (ido-at-point-do-read end common choices)))))))
 
 (defun ido-at-point-do-read (&rest args)
   (if ido-at-point-use-helm
@@ -78,17 +80,31 @@ query \"iapc\".")
    0 nil
    (lambda ()
      (ido-at-point-insert
-      end common
+      end common choices
       (ido-completing-read
        "" choices nil nil common)))))
 
 (defun ido-at-point-helm-read (end common choices)
-  (ido-at-point-insert
-   end common
-   (helm-comp-read
-    "" choices
-    :initial-input common
-    :alistp nil)))
+  (run-with-idle-timer
+   0 nil
+   (lambda ()
+     (ido-at-point-insert
+      end common choices
+      (helm-comp-read
+       "" choices
+       :initial-input common
+       :alistp nil)))))
+
+(defun ido-at-point-insert (end common choices completion)
+  "Replaces text in buffer from END back to common part length with COMPLETION."
+  ;; Completion text can have a property of `(face completions-common-part)'
+  ;; which we'll use to determine, whether the completion contains
+  ;; the common part (if any).
+  ;; Note that not all completions come with text properties.
+  (let ((len (or (next-property-change 0 (car choices)) (length common) 0)))
+    (goto-char end)
+    (delete-region (- end len) end)
+    (insert completion)))
 
 (defun ido-at-point-fuzzy-match (collection input &rest args)
   (let ((matched (list))
@@ -101,17 +117,6 @@ query \"iapc\".")
            (push name matched))))
      collection)
     matched))
-
-(defun ido-at-point-insert (end common completion)
-  "Replaces text in buffer from END back to COMMON length with COMPLETION."
-  ;; Completion text can have a property of `(face completions-common-part)'
-  ;; which we'll use to determine, whether the completion contains
-  ;; the common part (if any).
-  ;; Note that not all completions come with text properties.
-  (let ((len (or (next-property-change 0 completion) (length common) 0)))
-    (goto-char end)
-    (delete-region (- end len) end)
-    (insert completion)))
 
 (defun ido-at-point-mode-set (enable)
   (if enable
