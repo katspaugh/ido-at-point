@@ -5,7 +5,7 @@
 ;; Author: katspaugh
 ;; Keywords: convenience, abbrev
 ;; URL: https://github.com/katspaugh/ido-at-point
-;; Version: 0.0.2
+;; Version: 0.0.3
 ;; Package-Requires: ((emacs "24"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -45,6 +45,9 @@
 For example, this would suggest \"ido-at-point-complete\" for the
 query \"iapc\".")
 
+(defvar ido-at-point-use-helm nil
+  "If t, use helm completion frontend instead of ido.")
+
 (defun ido-at-point-complete (_ start end collection &optional predicate)
   "Completion for symbol at point using `ido-completing-read'."
   (let* ((input (buffer-substring-no-properties start end))
@@ -63,13 +66,29 @@ query \"iapc\".")
            (if (and ido-at-point-partial
                     (stringp common) (not (string= common input)))
                (ido-at-point-insert end input common)
-             ;; timer to prevent "error in process filter"
-             (run-with-idle-timer
-              0 nil
-              (lambda ()
-                (ido-at-point-insert
-                 end common
-                 (ido-completing-read "" choices nil nil common)))))))))
+             (ido-at-point-do-read end common choices))))))
+
+(defun ido-at-point-do-read (&rest args)
+  (if ido-at-point-use-helm
+      (apply #'ido-at-point-helm-read args)
+    (apply #'ido-at-point-read args)))
+
+(defun helm-at-point-read (end common choices)
+  (run-with-idle-timer
+   0 nil
+   (lambda ()
+     (ido-at-point-insert
+      end common
+      (ido-completing-read
+       "" choices nil nil common)))))
+
+(defun ido-at-point-helm-read (end common choices)
+  (ido-at-point-insert
+   end common
+   (helm-comp-read
+    "" choices
+    :initial-input common
+    :alistp nil)))
 
 (defun ido-at-point-fuzzy-match (collection input &rest args)
   (let ((matched (list))
@@ -104,7 +123,7 @@ query \"iapc\".")
 
 ;;;###autoload
 (define-minor-mode ido-at-point-mode
-  "Global minor mode to use IDO for `completion-at-point'.
+  "Global minor mode to use ido for `completion-at-point'.
 
 When called interactively, toggle `ido-at-point-mode'.  With
 prefix ARG, enable `ido-at-point-mode' if ARG is positive,
@@ -115,7 +134,7 @@ omitted, nil or positive.  If ARG is `toggle', toggle
 `ido-at-point-mode'.  Otherwise behave as if called
 interactively.
 
-With `ido-at-point-mode' use IDO for `completion-at-point'."
+With `ido-at-point-mode' use ido for `completion-at-point'."
   :variable ((memq 'ido-at-point-complete
                    completion-in-region-functions)
              .

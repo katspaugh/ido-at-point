@@ -1,6 +1,6 @@
 # ido-at-point
 
-Makes `completion-at-point` display possible completions via `ido–completing-read`.
+Makes `completion-at-point` display completion candidates using the **ido** prompt.
 
 ![screenshot](http://i.imgur.com/MvTla9I.png)
 
@@ -20,7 +20,7 @@ Then activate the mode:
 
 ### Usage
 
-Press `M-tab` or `C-M-i` to start completing.
+Press `M-tab` or `C-M-i` to start completion.
 
 ### Options
 
@@ -32,6 +32,11 @@ Fuzzy matching is *off* by default. If you want fuzzy matching, set `ido-at-poin
 
     (setq ido-at-point-fuzzy t)
 
+If you want to use **helm** instead of **ido**, set `ido-at-point-use-helm` to `t`. Please note that since this is optional, you'll need to manage the helm dependency manually.
+
+    (require 'helm-mode)
+    (setq ido-at-point-use-helm t)
+
 ### Compatibility
 
-Works only in Emacs 24 and higher. Compatible with asynchronous completion requests (including Tern's completion for JavaScript).
+Works only in Emacs 24 and higher. Compatible with Emacs Lisp mode, Tern, Shell mode and hopefully many others.
