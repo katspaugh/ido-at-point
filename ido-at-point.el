@@ -60,7 +60,7 @@ query \"iapc\".")
     ;; No candidates
     (if (null choices)
         (message "No match")
-      ;; A single candidates
+      ;; A single candidate
       (if (null (cdr choices))
           (ido-at-point-insert end input choices (car choices))
         ;; Many candidates
@@ -93,13 +93,14 @@ query \"iapc\".")
       (helm-comp-read
        "" choices
        :initial-input common
+       :must-match t
        :alistp nil)))))
 
 (defun ido-at-point-insert (end common choices completion)
   "Replaces text in buffer from END back to common part length with COMPLETION."
   ;; Completion text can have a property of `(face completions-common-part)'
-  ;; which we'll use to determine, whether the completion contains
-  ;; the common part (if any).
+  ;; which we'll use to determine whether the completion contains
+  ;; the common part.
   ;; Note that not all completions come with text properties.
   (let ((len (or (next-property-change 0 (car choices)) (length common) 0)))
     (goto-char end)
