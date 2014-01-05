@@ -5,8 +5,8 @@
 ;; Author: katspaugh
 ;; Keywords: convenience, abbrev
 ;; URL: https://github.com/katspaugh/ido-at-point
-;; Version: 0.0.3
-;; Package-Requires: ((emacs "24"))
+;; Version: 0.0.4
+;; Package-Requires: ((emacs "24.4"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -36,76 +36,55 @@
 
 (require 'ido)
 
-(defvar ido-at-point-partial t
-  "If nil, don't complete partial match on the first completion attempt.")
-
-(defvar ido-at-point-fuzzy nil
-  "If t, use fuzzy completion for abbreviations.
-
-For example, this would suggest \"ido-at-point-complete\" for the
-query \"iapc\".")
-
-(defvar ido-at-point-use-helm nil
-  "If t, use helm completion frontend instead of ido.")
-
-(defun ido-at-point-complete (_ start end collection &optional predicate)
+(defun ido-at-point-complete (start end collection &optional predicate)
   "Completion for symbol at point using `ido-completing-read'."
   (let* ((input (buffer-substring-no-properties start end))
-         (choices (all-completions
-                   input
-                   (if ido-at-point-fuzzy
-                       (apply-partially 'ido-at-point-fuzzy-match collection)
-                     collection)
-                   predicate)))
+         (comps (completion-all-completions
+                 input collection predicate (- end start))))
     ;; No candidates
-    (if (null choices)
-        (message "No match")
-      ;; A single candidate
-      (if (null (cdr choices))
-          (ido-at-point-insert end input choices (car choices))
-        ;; Many candidates
-        (let ((common (try-completion input choices)))
-          (if (and ido-at-point-partial
-                   (stringp common) (not (string= common input)))
-              (ido-at-point-insert end input choices common)
-            (ido-at-point-do-read end common choices)))))))
+    (if (null comps)
+        (message "No matches")
+      (let* ((first (car comps))
+             (common-len (ido-at-point-common-length first))
+             (common (substring-no-properties first 0 common-len)))
+        ;; Remove the last non-nil element of a possibly improper list
+        (nconc comps nil)
+        (if (null (cdr comps))
+            ;; Single candidate
+            (ido-at-point-insert end common-len first)
+          ;; Many candidates
+          (ido-at-point-do-read end common-len comps common))))))
 
-(defun ido-at-point-do-read (&rest args)
-  (if ido-at-point-use-helm
-      (apply #'ido-at-point-helm-read args)
-    (apply #'ido-at-point-read args)))
-
-(defun ido-at-point-read (end common choices)
+(defun ido-at-point-do-read (end common-len choices common)
   (run-with-idle-timer
    0 nil
    (lambda ()
      (ido-at-point-insert
-      end common choices
-      (ido-completing-read
-       "" choices nil nil common)))))
+      end common-len
+      (ido-at-point-read choices common)))))
 
-(defun ido-at-point-helm-read (end common choices)
-  (run-with-idle-timer
-   0 nil
-   (lambda ()
-     (ido-at-point-insert
-      end common choices
-      (helm-comp-read
-       "" choices
-       :initial-input common
-       :must-match t
-       :alistp nil)))))
+(defun ido-at-point-read (choices common)
+  (ido-completing-read "" choices nil t common))
 
-(defun ido-at-point-insert (end common choices completion)
+(defun ido-at-point-common-length (candidate)
+  ;; Completion text should have a property of
+  ;; `(face completions-common-part)'
+  ;; which we'll use to determine whether the completion
+  ;; contains the common part.
+  (let ((pos 0)
+        (len (length candidate)))
+    (while (and (< pos len)
+                (let ((prop (get-text-property pos 'face candidate)))
+                  (not (eq 'completions-common-part
+                           (if (listp prop) (car prop) prop)))))
+      (setq pos (1+ pos)))
+    (or (next-single-property-change pos 'face candidate) 0)))
+
+(defun ido-at-point-insert (end len completion)
   "Replaces text in buffer from END back to common part length with COMPLETION."
-  ;; Completion text can have a property of `(face completions-common-part)'
-  ;; which we'll use to determine whether the completion contains
-  ;; the common part.
-  ;; Note that not all completions come with text properties.
-  (let ((len (or (next-property-change 0 (car choices)) (length common) 0)))
-    (goto-char end)
-    (delete-region (- end len) end)
-    (insert completion)))
+  (goto-char end)
+  (delete-region (- end len) end)
+  (insert completion))
 
 (defun ido-at-point-fuzzy-match (collection input &rest args)
   (let ((matched (list))
@@ -119,13 +98,17 @@ query \"iapc\".")
      collection)
     matched))
 
-(defun ido-at-point-mode-set (enable)
-  (if enable
-      (add-to-list 'completion-in-region-functions
-                   'ido-at-point-complete)
-    (setq completion-in-region-functions
-          (delq 'ido-at-point-complete
-                completion-in-region-functions))))
+(let ((original-fn #'completion--in-region))
+  (defun ido-at-point-completion-in-region (&rest args)
+    (apply (if (window-minibuffer-p)
+               original-fn #'ido-at-point-complete) args))
+  (defun ido-at-point-mode-set (enable)
+    (if enable
+        (progn
+          (setq original-fn completion-in-region-function)
+          (setq completion-in-region-function
+                #'ido-at-point-completion-in-region))
+      (setq completion-in-region-function original-fn))))
 
 ;;;###autoload
 (define-minor-mode ido-at-point-mode
@@ -141,8 +124,8 @@ omitted, nil or positive.  If ARG is `toggle', toggle
 interactively.
 
 With `ido-at-point-mode' use ido for `completion-at-point'."
-  :variable ((memq 'ido-at-point-complete
-                   completion-in-region-functions)
+  :variable ((eq completion-in-region-function
+                 'ido-at-point-completion-in-region)
              .
              ido-at-point-mode-set))
 

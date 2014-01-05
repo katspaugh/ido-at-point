@@ -22,20 +22,15 @@ Then activate the mode:
 
 Press `M-tab` or `C-M-i` to start completion.
 
-### Options
+### Alternative completion front-ends
 
-Partial completion is *on* by default. If you don't want to get partial completions, set `ido-at-point-partial` to `nil`:
-
-    (setq ido-at-point-partial nil)
-
-Fuzzy matching is *off* by default. If you want fuzzy matching, set `ido-at-point-fuzzy` to `t`:
-
-    (setq ido-at-point-fuzzy t)
-
-If you want to use **helm** instead of **ido**, set `ido-at-point-use-helm` to `t`. Please note that since this is optional, you'll need to manage the helm dependency manually.
+If you fancy **helm** instead of **ido**, re-define the `ido-at-point-read` function:
 
     (require 'helm-mode)
-    (setq ido-at-point-use-helm t)
+    (defun ido-at-point-read (choices common)
+      (helm-comp-read "" choices
+                      :initial-input common
+                      :must-match t))
 
 ### Compatibility
 
