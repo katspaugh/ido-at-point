@@ -8,29 +8,37 @@ Makes `completion-at-point` display completion candidates using the **ido** prom
 
 You can install the package from [MELPA](http://melpa.milkbox.net/) and autoload it:
 
-    (autoload 'ido-at-point-mode "ido-at-point")
+```lisp
+(autoload 'ido-at-point-mode "ido-at-point")
+```
 
 Otherwise, if installed manually:
 
-    (require 'ido-at-point)
+```lisp
+(require 'ido-at-point)
+```
 
 Then activate the mode:
 
-    (ido-at-point-mode)
+```lisp
+(ido-at-point-mode)
+```
 
 ### Usage
 
-Press `M-tab` or `C-M-i` to start completion.
+Press <kbd>M-tab</kbd> or <kbd>C-M-i</kbd> to start completion.
 
 ### Alternative completion front-ends
 
-If you fancy **helm** instead of **ido**, re-define the `ido-at-point-read` function:
+If you fancy using **helm** instead of **ido**, re-define the `ido-at-point-read` function:
 
-    (require 'helm-mode)
-    (defun ido-at-point-read (choices common)
-      (helm-comp-read "" choices
-                      :initial-input common
-                      :must-match t))
+```lisp
+(require 'helm-mode)
+(defun ido-at-point-read (choices common)
+  (helm-comp-read "" choices
+                  :initial-input common
+                  :must-match t))
+```
 
 ### Compatibility
 
