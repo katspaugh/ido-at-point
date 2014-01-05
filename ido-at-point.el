@@ -86,18 +86,6 @@
   (delete-region (- end len) end)
   (insert completion))
 
-(defun ido-at-point-fuzzy-match (collection input &rest args)
-  (let ((matched (list))
-        (fuzzy-target
-         (mapconcat #'regexp-quote (split-string input "" t) ".*?")))
-    (mapc
-     (lambda (ob)
-       (let ((name (if (symbolp ob) (symbol-name ob) ob)))
-         (when (string-match-p fuzzy-target name)
-           (push name matched))))
-     collection)
-    matched))
-
 (let ((original-fn #'completion--in-region))
   (defun ido-at-point-completion-in-region (&rest args)
     (apply (if (window-minibuffer-p)
