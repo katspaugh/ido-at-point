@@ -38,22 +38,22 @@
 
 (defun ido-at-point-complete (start end collection &optional predicate)
   "Completion for symbol at point using `ido-completing-read'."
-  (let* ((input (buffer-substring-no-properties start end))
-         (comps (completion-all-completions
-                 input collection predicate (- end start))))
+  (let ((comps (completion-all-completions
+                (buffer-substring-no-properties start end)
+                collection predicate (- end start))))
     ;; No candidates
     (if (null comps)
         (message "No matches")
       (let* ((first (car comps))
-             (common-len (ido-at-point-common-length first))
-             (common (substring-no-properties first 0 common-len)))
+             (common-len (ido-at-point-common-length first)))
         ;; Remove the last non-nil element of a possibly improper list
         (nconc comps nil)
         (if (null (cdr comps))
             ;; Single candidate
             (ido-at-point-insert end common-len first)
           ;; Many candidates
-          (ido-at-point-do-complete end common-len comps common))))))
+          (let ((common (substring-no-properties first 0 common-len)))
+            (ido-at-point-do-complete end common-len comps common)))))))
 
 (defun ido-at-point-do-complete (end common-len comps common)
   (run-with-idle-timer
@@ -116,7 +116,7 @@ interactively.
 
 With `ido-at-point-mode' use ido for `completion-at-point'."
   :variable ((eq completion-in-region-function
-                 'ido-at-point-completion-in-region)
+                 #'ido-at-point-completion-in-region)
              .
              ido-at-point-mode-set))
 
