@@ -73,12 +73,14 @@
   ;; contains the common part.
   (let ((pos 0)
         (len (length candidate)))
-    (while (and (< pos len)
+    (while (and (<= pos len)
                 (let ((prop (get-text-property pos 'face candidate)))
                   (not (eq 'completions-common-part
                            (if (listp prop) (car prop) prop)))))
       (setq pos (1+ pos)))
-    (or (next-single-property-change pos 'face candidate) 0)))
+    (if (< pos len)
+        (or (next-single-property-change pos 'face candidate) len)
+      0)))
 
 (defun ido-at-point-insert (end common-part-length completion)
   "Replaces text in buffer from END back to COMMON-PART-LENGTH
