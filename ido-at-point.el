@@ -55,15 +55,15 @@
           ;; Many candidates
           (ido-at-point-do-read end common-len comps common))))))
 
-(defun ido-at-point-do-read (end common-len choices common)
+(defun ido-at-point-do-read (end common-len comps common)
   (run-with-idle-timer
    0 nil
    (lambda ()
-     (ido-at-point-insert
-      end common-len
-      (ido-at-point-read choices common)))))
+     (let ((choice (ido-at-point-read end common-len comps common)))
+       (when (stringp choice)
+         (ido-at-point-insert choice end common-len))))))
 
-(defun ido-at-point-read (choices common)
+(defun ido-at-point-read (end common-len choices common)
   (ido-completing-read "" choices nil t common))
 
 (defun ido-at-point-common-length (candidate)
