@@ -50,18 +50,18 @@
         (nconc comps nil)
         (if (null (cdr comps))
             ;; Single candidate
-            (ido-at-point-insert end common-len first)
+            (ido-at-point-insert start end common-len first)
           ;; Many candidates
           (let ((common (substring-no-properties first 0 common-len)))
-            (ido-at-point-do-complete end common-len comps common)))))))
+            (ido-at-point-do-complete start end common-len comps common)))))))
 
-(defun ido-at-point-do-complete (end common-len comps common)
+(defun ido-at-point-do-complete (start end common-len comps common)
   (run-with-idle-timer
    0 nil
    (lambda ()
      (let ((choice (ido-at-point-read comps common)))
        (when (stringp choice)
-         (ido-at-point-insert end common-len choice))))))
+         (ido-at-point-insert start end common-len choice))))))
 
 (defun ido-at-point-read (comps common)
   (ido-completing-read "" comps nil t common))
@@ -82,12 +82,13 @@
         (or (next-single-property-change pos 'face candidate) len)
       0)))
 
-(defun ido-at-point-insert (end common-part-length completion)
+(defun ido-at-point-insert (start end common-part-length completion)
   "Replaces text in buffer from END back to COMMON-PART-LENGTH
 with COMPLETION."
-  (goto-char end)
-  (delete-region (- end common-part-length) end)
-  (insert completion))
+  (let ((reg-start (- end common-part-length)))
+    (goto-char end)
+    (delete-region (max start reg-start) end)
+    (insert completion)))
 
 (let ((original-fn #'completion--in-region))
   (defun ido-at-point-completion-in-region (&rest args)
