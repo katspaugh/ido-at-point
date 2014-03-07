@@ -40,3 +40,5 @@ If you want to use **helm** instead of **ido**, set `ido-at-point-use-helm` to `
 ### Compatibility
 
 Works only in Emacs 24 and higher. Compatible with Emacs Lisp mode, Tern, Shell mode and hopefully many others.
+
+If you use Emacs 24.4 (the next release), checkout the branch [*next*](https://github.com/katspaugh/ido-at-point/tree/next).
