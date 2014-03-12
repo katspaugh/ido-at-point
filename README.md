@@ -8,34 +8,37 @@ Makes `completion-at-point` display completion candidates using the **ido** prom
 
 You can install the package from [MELPA](http://melpa.milkbox.net/) and autoload it:
 
-    (autoload 'ido-at-point-mode "ido-at-point")
+```lisp
+(autoload 'ido-at-point-mode "ido-at-point")
+```
 
 Otherwise, if installed manually:
 
-    (require 'ido-at-point)
+```lisp
+(require 'ido-at-point)
+```
 
 Then activate the mode:
 
-    (ido-at-point-mode)
+```lisp
+(ido-at-point-mode)
+```
 
 ### Usage
 
-Press `M-tab` or `C-M-i` to start completion.
+Press <kbd>M-tab</kbd> or <kbd>C-M-i</kbd> to start completion.
 
-### Options
+### Alternative completion front-ends
 
-Partial completion is *on* by default. If you don't want to get partial completions, set `ido-at-point-partial` to `nil`:
+If you fancy using **helm** instead of **ido**, re-define the `ido-at-point-read` function:
 
-    (setq ido-at-point-partial nil)
-
-Fuzzy matching is *off* by default. If you want fuzzy matching, set `ido-at-point-fuzzy` to `t`:
-
-    (setq ido-at-point-fuzzy t)
-
-If you want to use **helm** instead of **ido**, set `ido-at-point-use-helm` to `t`. Please note that since this is optional, you'll need to manage the helm dependency manually.
-
-    (require 'helm-mode)
-    (setq ido-at-point-use-helm t)
+```lisp
+(require 'helm-mode)
+(defun ido-at-point-read (choices common)
+  (helm-comp-read "" choices
+                  :initial-input common
+                  :must-match t))
+```
 
 ### Compatibility
 
