@@ -90,17 +90,18 @@ with COMPLETION."
     (delete-region (max start reg-start) end)
     (insert completion)))
 
-(let ((original-fn #'completion--in-region))
-  (defun ido-at-point-completion-in-region (&rest args)
-    (apply (if (window-minibuffer-p)
-               original-fn #'ido-at-point-complete) args))
-  (defun ido-at-point-mode-set (enable)
-    (if enable
-        (progn
-          (setq original-fn completion-in-region-function)
-          (setq completion-in-region-function
-                #'ido-at-point-completion-in-region))
-      (setq completion-in-region-function original-fn))))
+(defun ido-at-point-completion-in-region (next &rest args)
+  (if (window-minibuffer-p)
+      (apply next args)
+    (apply #'ido-at-point-complete args)))
+
+(defun ido-at-point-mode-set (enable)
+  (if enable
+      (add-to-list 'completion-in-region-functions
+                   'ido-at-point-completion-in-region)
+    (setq completion-in-region-functions
+          (delq 'ido-at-point-completion-in-region
+                completion-in-region-functions))))
 
 ;;;###autoload
 (define-minor-mode ido-at-point-mode
@@ -116,8 +117,8 @@ omitted, nil or positive.  If ARG is `toggle', toggle
 interactively.
 
 With `ido-at-point-mode' use ido for `completion-at-point'."
-  :variable ((eq completion-in-region-function
-                 #'ido-at-point-completion-in-region)
+  :variable ((memq 'ido-at-point-completion-in-region
+                   completion-in-region-functions)
              .
              ido-at-point-mode-set))
 
