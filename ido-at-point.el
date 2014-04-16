@@ -88,7 +88,7 @@ with COMPLETION."
   (let ((reg-start (- end common-part-length)))
     (goto-char end)
     (delete-region (max start reg-start) end)
-    (insert completion)))
+    (insert (substring-no-properties completion))))
 
 (defun ido-at-point-completion-in-region (next &rest args)
   (if (window-minibuffer-p)
