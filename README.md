@@ -2,6 +2,8 @@
 
 Makes `completion-at-point` display completion candidates using the **ido** prompt.
 
+**ido**で自動補完のプロジェクトです。
+
 ![screenshot](http://i.imgur.com/MvTla9I.png)
 
 ### Installation
