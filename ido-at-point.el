@@ -123,5 +123,7 @@ With `ido-at-point-mode' use ido for `completion-at-point'."
              ido-at-point-mode-set))
 
 (provide 'ido-at-point)
-
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; End:
 ;;; ido-at-point.el ends here
