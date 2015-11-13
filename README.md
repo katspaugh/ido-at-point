@@ -1,5 +1,7 @@
 # ido-at-point
 
+[![MELPA](http://melpa.org/packages/ido-at-point-badge.svg)](http://melpa.org/#/ido-at-point)
+
 Makes `completion-at-point` display completion candidates using the **ido** prompt.
 
 **ido**で自動補完のプロジェクトです。
